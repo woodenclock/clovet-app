@@ -1,50 +1,77 @@
-# Welcome to your Expo app 👋
+# Clovet App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A clothing organization and curation app that helps you manage your wardrobe.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Saved Items**: View and manage all your saved clothing items
+- **Curated Collection**: AI-powered curation of your clothing items to create stylish outfits
 
-   ```bash
+## Getting Started
+
+### Prerequisites
+
+- Node.js 14+ and npm
+- Expo CLI: `npm install -g expo-cli`
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```
+   cd clovet-app
    npm install
    ```
 
-2. Start the app
-
-   ```bash
-   npx expo start
+3. Start the app:
+   ```
+   npm run dev
    ```
 
-In the output, you'll find options to open the app in a
+### Backend Setup
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+1. Navigate to the backend directory:
+   ```
+   cd clovet-backend
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+2. Install dependencies:
+   ```
+   npm install
+   ```
 
-## Get a fresh project
+3. Start the backend server:
+   ```
+   node index.js
+   ```
 
-When you're ready, run:
+   Or with OpenAI API key for AI curation:
+   ```
+   node start.js YOUR_OPENAI_API_KEY
+   ```
 
-```bash
-npm run reset-project
-```
+## Using the Curated Tab
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+The Curated tab uses AI to select items from your saved collection that work well together. To use this feature:
 
-## Learn more
+1. Save several clothing items in the Saved tab
+2. Navigate to the Curated tab
+3. The app will automatically generate a curated collection
+4. Tap the "Refresh" button to generate a new curated collection
+5. Tap on any item to see why it was selected
 
-To learn more about developing your project with Expo, look at the following resources:
+### AI Curation
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+The AI curation feature uses OpenAI's GPT model to:
+- Analyze your saved clothing items
+- Select items that work well together
+- Provide reasons for each selection
 
-## Join the community
+For the best results:
+- Save at least 5-10 clothing items
+- Include a variety of clothing types (tops, bottoms, accessories)
+- Make sure your clothing items have descriptive text
 
-Join our community of developers creating universal apps.
+## License
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This project is licensed under the MIT License.

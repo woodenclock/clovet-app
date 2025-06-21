@@ -113,26 +113,34 @@ export default function SavedScreen() {
     
       {/* Main Content */}
       <View style={{ flex: 1, padding: GAP }}>
-        {/* ----- grid ----- */}
-        <FlatList
-          data={pins}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={NUM_COLS}
-          columnWrapperStyle={{ gap: GAP }}
-          ItemSeparatorComponent={() => <View style={{ height: GAP }} />}
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() => setSelected(item)}
-              pointerEvents="auto"
-            >
-              <Image
-                source={{ uri: item.img }}
-                style={styles.tile}
-                resizeMode="cover"
-              />
-            </Pressable>
-          )}
-        />
+        {pins.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="bookmark-outline" size={64} color="#ccc" />
+            <Text style={styles.emptyStateText}>
+              No saved items yet. Add clothes to your collection.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={pins}
+            keyExtractor={(item) => item.id.toString()}
+            numColumns={NUM_COLS}
+            columnWrapperStyle={{ gap: GAP }}
+            ItemSeparatorComponent={() => <View style={{ height: GAP }} />}
+            renderItem={({ item }) => (
+              <Pressable
+                onPress={() => setSelected(item)}
+                pointerEvents="auto"
+              >
+                <Image
+                  source={{ uri: item.img }}
+                  style={styles.tile}
+                  resizeMode="cover"
+                />
+              </Pressable>
+            )}
+          />
+        )}
 
         {/* ----- modal ----- */}
         <Modal
@@ -370,5 +378,17 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     marginLeft: 5,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyStateText: {
+    marginTop: 10,
+    textAlign: 'center',
+    color: '#666',
+    fontSize: 16,
   },
 });

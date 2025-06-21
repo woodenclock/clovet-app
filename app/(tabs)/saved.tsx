@@ -2,7 +2,7 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import {
   View, FlatList, Image, Dimensions,
-  ActivityIndicator, Pressable, Modal, Button, StyleSheet, Text, Alert
+  ActivityIndicator, Pressable, Modal, Button, StyleSheet, Text
 } from 'react-native';
 
 type Pin = { id: number; img: string; text: string; savedAt: number };
@@ -17,6 +17,8 @@ export default function SavedScreen() {
   const [pins, setPins]         = useState<Pin[]>([]);
   const [loading, setLoading]   = useState(true);
   const [selected, setSelected] = useState<Pin | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{text: string, isError: boolean} | null>(null);
 
   // --------─ fetch once ─--------
   useEffect(() => {
@@ -27,15 +29,12 @@ export default function SavedScreen() {
   const loadPins = async () => {
     try {
       setLoading(true);
-      console.log('Fetching pins from API...');
       const res  = await fetch(API_URL);
-      console.log('API response status:', res.status);
       const data = (await res.json()) as Pin[];
-      console.log('Pins loaded:', data.length);
       setPins(data);
     } catch (error) {
       console.error('Error loading pins:', error);
-      Alert.alert('Error', 'Failed to load saved items. Please check your connection.');
+      setStatusMessage({ text: 'Failed to load saved items. Please check your connection.', isError: true });
     } finally {
       setLoading(false);
     }
@@ -51,12 +50,34 @@ export default function SavedScreen() {
   // --------─ delete all helper ─--------
   const handleDeleteAll = () => {
     console.log('Delete All button pressed');
+    setShowConfirm(true);
+  };
+  
+  const confirmDeleteAll = () => {
+    setShowConfirm(false);
+    setLoading(true);
+    
     fetch(API_URL, { method: 'DELETE' })
       .then(res => {
         console.log('Delete response:', res.status);
-        if (res.ok) setPins([]);
+        if (res.ok) {
+          setPins([]);
+          setStatusMessage({ text: 'All items have been deleted', isError: false });
+        } else {
+          setStatusMessage({ text: 'Failed to delete items', isError: true });
+        }
       })
-      .catch(err => console.error('Delete failed:', err));
+      .catch(err => {
+        console.error('Delete failed:', err);
+        setStatusMessage({ text: 'Failed to delete items. Please check your connection.', isError: true });
+      })
+      .finally(() => {
+        setLoading(false);
+        // Auto-hide success message after 3 seconds
+        setTimeout(() => {
+          setStatusMessage(null);
+        }, 3000);
+      });
   };
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} />;
@@ -74,10 +95,21 @@ export default function SavedScreen() {
             ]}
             onPress={handleDeleteAll}
           >
+            <Ionicons name="trash-outline" size={18} color="white" />
             <Text style={styles.deleteAllText}>Delete All</Text>
           </Pressable>
         )}
       </View>
+      
+      {/* Status Message */}
+      {statusMessage && (
+        <View style={[
+          styles.statusMessage, 
+          statusMessage.isError ? styles.errorMessage : styles.successMessage
+        ]}>
+          <Text style={styles.statusText}>{statusMessage.text}</Text>
+        </View>
+      )}
     
       {/* Main Content */}
       <View style={{ flex: 1, padding: GAP }}>
@@ -157,6 +189,46 @@ export default function SavedScreen() {
           </Pressable>
         </Modal>
       </View>
+      
+      {/* Confirmation Modal */}
+      <Modal
+        visible={showConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowConfirm(false)}
+      >
+        <Pressable 
+          style={styles.backdrop} 
+          onPress={() => setShowConfirm(false)}
+        >
+          <Pressable 
+            style={styles.confirmModal}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.confirmTitle}>Delete All Items</Text>
+            <Text style={styles.confirmText}>
+              Are you sure you want to delete all saved items? This action cannot be undone.
+            </Text>
+            
+            <View style={styles.confirmButtons}>
+              <Pressable 
+                style={styles.cancelBtn}
+                onPress={() => setShowConfirm(false)}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </Pressable>
+              
+              <Pressable 
+                style={styles.deleteBtn}
+                onPress={confirmDeleteAll}
+              >
+                <Ionicons name="trash-outline" size={18} color="white" />
+                <Text style={styles.deleteBtnText}>Delete All</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -223,5 +295,80 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 5,
     fontSize: 14,
+  },
+  statusMessage: {
+    position: 'absolute',
+    top: 70,
+    left: '50%',
+    transform: [{ translateX: -150 }],
+    width: 300,
+    padding: 12,
+    borderRadius: 5,
+    zIndex: 100,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  statusText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  errorMessage: {
+    backgroundColor: '#d33',
+  },
+  successMessage: {
+    backgroundColor: '#4CAF50',
+  },
+  confirmModal: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  confirmTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  confirmText: {
+    marginBottom: 20,
+  },
+  confirmButtons: {
+    flexDirection: 'row',
+    gap: 20,
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  cancelBtn: {
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    color: '#333',
+    fontWeight: 'bold',
+  },
+  deleteBtn: {
+    backgroundColor: '#d33',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    minWidth: 100,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteBtnText: {
+    color: 'white',
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });

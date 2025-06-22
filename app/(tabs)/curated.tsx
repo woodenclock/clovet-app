@@ -111,6 +111,8 @@ export default function CuratedScreen() {
         reason: "Selected because you have a small collection."
       }));
     }
+
+    console.log("These items were selected randomly")
     
     // Otherwise, select 3 random items
     return [...items]

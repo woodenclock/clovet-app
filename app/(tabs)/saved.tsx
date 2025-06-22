@@ -22,7 +22,6 @@ export default function SavedScreen() {
 
   // --------─ fetch once ─--------
   useEffect(() => {
-    console.log('Loading pins...');
     loadPins();
   }, []);
   

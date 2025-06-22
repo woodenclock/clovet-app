@@ -9,7 +9,7 @@ type Pin = { id: number; img: string; text: string; savedAt: number };
 type CuratedItem = { id: number; img: string; text: string; reason: string };
 
 const GAP = 10;
-const NUM_COLS = 2; // Fewer columns for larger images
+const NUM_COLS = 5; // Fewer columns for larger images
 const W = Dimensions.get('window').width;
 const TILE_W = (W - GAP * (NUM_COLS + 1)) / NUM_COLS;
 const API_URL = 'http://localhost:3001/api/pins';
@@ -58,21 +58,39 @@ export default function CuratedScreen() {
         text: pin.text
       }));
 
-      // Call your backend endpoint that will use ChatGPT API
-      const response = await fetch('http://localhost:3001/api/curate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ pins: pinData })
-      });
+      try {
+        // Call your backend endpoint that will use ChatGPT API
+        const response = await fetch('http://localhost:3001/api/curate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ pins: pinData })
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to curate items');
+        if (!response.ok) {
+          throw new Error(`API returned ${response.status}`);
+        }
+
+        const curatedData = await response.json();
+        setCuratedItems(curatedData);
+      } catch (apiError) {
+        console.error('API error:', apiError);
+        
+        // Local fallback: Select random items if API fails
+        const fallbackItems = createLocalCuration(pins);
+        setCuratedItems(fallbackItems);
+        
+        setStatusMessage({ 
+          text: 'Using local curation (API unavailable)', 
+          isError: true 
+        });
+        
+        // Auto-hide the message after 3 seconds
+        setTimeout(() => {
+          setStatusMessage(null);
+        }, 3000);
       }
-
-      const curatedData = await response.json();
-      setCuratedItems(curatedData);
     } catch (error) {
       console.error('Error generating curated items:', error);
       setStatusMessage({ 
@@ -82,6 +100,26 @@ export default function CuratedScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Local fallback function to create curated items without API
+  const createLocalCuration = (items: Pin[]): CuratedItem[] => {
+    // If we have 3 or fewer items, just use all of them
+    if (items.length <= 3) {
+      return items.map(item => ({
+        ...item,
+        reason: "Selected because you have a small collection."
+      }));
+    }
+    
+    // Otherwise, select 3 random items
+    return [...items]
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 3)
+      .map(item => ({
+        ...item,
+        reason: "Selected randomly based on your collection."
+      }));
   };
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} />;
@@ -249,7 +287,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 10,
-    width: '50%',
+    width: '35%',
     padding: 20,
   },
   popupImg: {
